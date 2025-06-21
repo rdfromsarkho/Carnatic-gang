@@ -8,7 +8,8 @@
     body {
       font-family: Arial, sans-serif;
       background: #e8f5e9;
-      margin: 0; padding: 20px;
+      margin: 0;
+      padding: 20px;
     }
     h1 {
       color: #2e7d32;
@@ -133,19 +134,16 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
 
 <script>
-  // Your Firebase config object here (replace with your actual config)
   const firebaseConfig = {
-    apiKey: "AIzaSyDEhfCXZWN6EAJ3j4MhGyh7WO1hJMwoFVE",
-    authDomain: "carnatic-gang.firebaseapp.com",
-    databaseURL: "https://carnatic-gang-default-rtdb.asia-southeast1.firebasedatabase.app",
-    projectId: "carnatic-gang",
-    storageBucket: "carnatic-gang.firebasestorage.app",
-    messagingSenderId: "228881264103",
-    appId: "1:228881264103:web:720f093d5ce6e92d482142",
-    measurementId: "G-KR2X61PHF2"
+    apiKey: "AIzaSyDjNGCKm5nxa0LeH2XQ_PXKwa_wFcti2g8",
+    authDomain: "carnatic-gang1.firebaseapp.com",
+    databaseURL: "https://carnatic-gang1-default-rtdb.firebaseio.com",
+    projectId: "carnatic-gang1",
+    storageBucket: "carnatic-gang1.appspot.com",
+    messagingSenderId: "345136331279",
+    appId: "1:345136331279:web:2eabca7e263a431bd2017a"
   };
 
-  // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.database();
   const storage = firebase.storage();
@@ -154,13 +152,12 @@
   const membersList = document.getElementById('membersList');
 
   let isAdmin = false;
-  const adminPassword = 'carnatic123'; // Your admin password
+  const adminPassword = 'carnatic123';
 
   const loginBtn = document.getElementById('loginBtn');
   const adminPasswordInput = document.getElementById('adminPassword');
   const loginMsg = document.getElementById('loginMsg');
 
-  // Admin login button handler
   loginBtn.addEventListener('click', () => {
     if (adminPasswordInput.value === adminPassword) {
       isAdmin = true;
@@ -172,7 +169,6 @@
     }
   });
 
-  // Show or hide delete buttons based on admin login
   function showDeleteButtons(show) {
     const buttons = document.querySelectorAll('.deleteBtn');
     buttons.forEach(btn => {
@@ -180,7 +176,6 @@
     });
   }
 
-  // Add member form submit handler
   memberForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -195,12 +190,10 @@
     }
 
     try {
-      // Upload photo to Firebase Storage
       const storageRef = storage.ref('members/' + Date.now() + '_' + photoFile.name);
       const snapshot = await storageRef.put(photoFile);
       const photoURL = await snapshot.ref.getDownloadURL();
 
-      // Save member data to Realtime Database
       const newMemberRef = db.ref('members').push();
       await newMemberRef.set({
         name,
@@ -217,7 +210,6 @@
     }
   });
 
-  // Function to delete a member
   async function deleteMember(memberId) {
     if (!isAdmin) {
       alert("Only admin can delete members.");
@@ -231,7 +223,6 @@
     }
   }
 
-  // Function to render members list
   function renderMembers(members) {
     membersList.innerHTML = '';
     for (const id in members) {
@@ -247,7 +238,6 @@
         <button class="deleteBtn" title="Delete Member">&times;</button>
       `;
 
-      // Delete button only visible for admin
       const delBtn = card.querySelector('.deleteBtn');
       delBtn.style.display = isAdmin ? 'block' : 'none';
       delBtn.addEventListener('click', () => {
@@ -260,12 +250,10 @@
     }
   }
 
-  // Listen for changes in members data
   db.ref('members').on('value', (snapshot) => {
     const members = snapshot.val() || {};
     renderMembers(members);
   });
-
 </script>
 
 </body>
