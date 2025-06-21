@@ -2,150 +2,271 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Carnatic Gang</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Carnatic Gang Members</title>
   <style>
     body {
-      background-color: #e6ffe6;
       font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 30px;
+      background: #e8f5e9;
+      margin: 0; padding: 20px;
     }
     h1 {
-      color: green;
+      color: #2e7d32;
+      text-align: center;
     }
-    .member {
-      background: white;
-      margin: 10px auto;
-      padding: 10px;
-      width: 300px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    form {
+      max-width: 400px;
+      margin: 0 auto 20px auto;
+      background: #a5d6a7;
+      padding: 15px;
+      border-radius: 8px;
     }
-    .member img {
-      width: 100px;
-      height: 100px;
-      object-fit: cover;
-      border-radius: 50%;
-      margin-bottom: 10px;
-    }
-    .form-section, .admin-login {
-      margin-top: 30px;
-    }
-    input {
+    input, select {
+      width: 100%;
       padding: 8px;
-      margin: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-      width: 90%;
+      margin: 8px 0;
+      border-radius: 4px;
+      border: 1px solid #4caf50;
     }
     button {
-      padding: 10px 20px;
-      border: none;
-      background: green;
+      background: #388e3c;
       color: white;
-      border-radius: 5px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 4px;
       cursor: pointer;
-      margin: 5px;
+      font-weight: bold;
     }
-    .admin-controls {
-      margin-top: 10px;
+    button:hover {
+      background: #2e7d32;
+    }
+    #membersList {
+      max-width: 600px;
+      margin: 0 auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+    .memberCard {
+      background: #c8e6c9;
+      padding: 10px;
+      border-radius: 8px;
+      width: 180px;
+      box-shadow: 0 0 5px #4caf50aa;
+      text-align: center;
+      position: relative;
+    }
+    .memberCard img {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #2e7d32;
+      margin-bottom: 8px;
+    }
+    .deleteBtn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: #d32f2f;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      display: none;
+    }
+    #adminLogin {
+      max-width: 400px;
+      margin: 10px auto 20px auto;
+      text-align: center;
+    }
+    #adminLogin input {
+      width: auto;
+      padding: 6px;
+      margin-right: 8px;
+    }
+    #adminLogin button {
+      width: auto;
+      padding: 7px 12px;
+    }
+    #loginMsg {
+      color: #d32f2f;
+      font-weight: bold;
+      margin-top: 8px;
     }
   </style>
 </head>
 <body>
-  <h1>Carnatic Gang</h1>
-  <p>हर बंदा है यूनिक, हर रोल है क्लासिक</p>
 
-  <div id="members"></div>
+<h1>Carnatic Gang Members</h1>
 
-  <div class="form-section" id="publicForm">
-    <h2>Add Yourself</h2>
-    <input type="text" id="name" placeholder="Name" required /><br>
-    <input type="text" id="role" placeholder="Designation" required /><br>
-    <input type="text" id="qual" placeholder="Qualification" required /><br>
-    <input type="file" id="photo" accept="image/*" /><br>
-    <button onclick="addMember()">Add Member</button>
-  </div>
+<div id="adminLogin">
+  <input type="password" id="adminPassword" placeholder="Admin Password" />
+  <button id="loginBtn">Login as Admin</button>
+  <div id="loginMsg"></div>
+</div>
 
-  <div class="admin-login" id="adminLogin">
-    <h3>Admin Login</h3>
-    <input type="password" id="adminPass" placeholder="Enter admin password" />
-    <button onclick="login()">Login</button>
-  </div>
+<form id="memberForm">
+  <input type="text" id="name" placeholder="Name" required />
+  <input type="text" id="role" placeholder="Role / Designation" required />
+  <select id="qualification" required>
+    <option value="" disabled selected>Select Qualification</option>
+    <option value="NEET Dropper">NEET Dropper</option>
+    <option value="Graduate">Graduate</option>
+    <option value="Student">Student</option>
+    <option value="Other">Other</option>
+  </select>
+  <input type="file" id="photo" accept="image/*" required />
+  <button type="submit">Add Member</button>
+</form>
 
-  <script>
-    const ADMIN_PASSWORD = "carnatic123";
-    let isAdmin = false;
-    let members = JSON.parse(localStorage.getItem("members") || "[]");
+<div id="membersList"></div>
 
-    function saveData() {
-      localStorage.setItem("members", JSON.stringify(members));
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+<script>
+  // Your Firebase config object here (replace with your actual config)
+  const firebaseConfig = {
+    apiKey: "AIzaSyDEhfCXZWN6EAJ3j4MhGyh7WO1hJMwoFVE",
+    authDomain: "carnatic-gang.firebaseapp.com",
+    databaseURL: "https://carnatic-gang-default-rtdb.asia-southeast1.firebasedatabase.app",
+    projectId: "carnatic-gang",
+    storageBucket: "carnatic-gang.firebasestorage.app",
+    messagingSenderId: "228881264103",
+    appId: "1:228881264103:web:720f093d5ce6e92d482142",
+    measurementId: "G-KR2X61PHF2"
+  };
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+  const storage = firebase.storage();
+
+  const memberForm = document.getElementById('memberForm');
+  const membersList = document.getElementById('membersList');
+
+  let isAdmin = false;
+  const adminPassword = 'carnatic123'; // Your admin password
+
+  const loginBtn = document.getElementById('loginBtn');
+  const adminPasswordInput = document.getElementById('adminPassword');
+  const loginMsg = document.getElementById('loginMsg');
+
+  // Admin login button handler
+  loginBtn.addEventListener('click', () => {
+    if (adminPasswordInput.value === adminPassword) {
+      isAdmin = true;
+      loginMsg.textContent = "Admin logged in!";
+      adminPasswordInput.value = '';
+      showDeleteButtons(true);
+    } else {
+      loginMsg.textContent = "Wrong password!";
+    }
+  });
+
+  // Show or hide delete buttons based on admin login
+  function showDeleteButtons(show) {
+    const buttons = document.querySelectorAll('.deleteBtn');
+    buttons.forEach(btn => {
+      btn.style.display = show ? 'block' : 'none';
+    });
+  }
+
+  // Add member form submit handler
+  memberForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const name = document.getElementById('name').value.trim();
+    const role = document.getElementById('role').value.trim();
+    const qualification = document.getElementById('qualification').value;
+    const photoFile = document.getElementById('photo').files[0];
+
+    if (!name || !role || !qualification || !photoFile) {
+      alert("Please fill all fields and select a photo.");
+      return;
     }
 
-    function renderMembers() {
-      const membersDiv = document.getElementById("members");
-      membersDiv.innerHTML = "";
-      members.forEach((m, i) => {
-        let html = `<div class="member">
-          <img src="${m.photo}" alt="Photo" />
-          <strong>${m.name}</strong><br>${m.role}<br><em>${m.qual}</em>`;
-        if (isAdmin) {
-          html += `<div class="admin-controls">
-                    <button onclick="deleteMember(${i})">🗑 Delete</button>
-                   </div>`;
-        }
-        html += `</div>`;
-        membersDiv.innerHTML += html;
+    try {
+      // Upload photo to Firebase Storage
+      const storageRef = storage.ref('members/' + Date.now() + '_' + photoFile.name);
+      const snapshot = await storageRef.put(photoFile);
+      const photoURL = await snapshot.ref.getDownloadURL();
+
+      // Save member data to Realtime Database
+      const newMemberRef = db.ref('members').push();
+      await newMemberRef.set({
+        name,
+        role,
+        qualification,
+        photoURL
       });
+
+      alert("Member added successfully!");
+
+      memberForm.reset();
+    } catch (error) {
+      alert("Error adding member: " + error.message);
     }
+  });
 
-    function addMember() {
-      const name = document.getElementById("name").value.trim();
-      const role = document.getElementById("role").value.trim();
-      const qual = document.getElementById("qual").value.trim();
-      const photoInput = document.getElementById("photo");
-
-      if (!name || !role || !qual || !photoInput.files[0]) {
-        alert("Please fill all fields and upload a photo");
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const photoData = e.target.result;
-        const newMember = { name, role, qual, photo: photoData };
-        members.push(newMember);
-        saveData();
-        renderMembers();
-        document.getElementById("name").value = "";
-        document.getElementById("role").value = "";
-        document.getElementById("qual").value = "";
-        document.getElementById("photo").value = "";
-      };
-      reader.readAsDataURL(photoInput.files[0]);
+  // Function to delete a member
+  async function deleteMember(memberId) {
+    if (!isAdmin) {
+      alert("Only admin can delete members.");
+      return;
     }
-
-    function deleteMember(index) {
-      if (confirm("Are you sure you want to delete this member?")) {
-        members.splice(index, 1);
-        saveData();
-        renderMembers();
-      }
+    try {
+      await db.ref('members/' + memberId).remove();
+      alert("Member deleted successfully!");
+    } catch (error) {
+      alert("Error deleting member: " + error.message);
     }
+  }
 
-    function login() {
-      const pass = document.getElementById("adminPass").value;
-      if (pass === ADMIN_PASSWORD) {
-        isAdmin = true;
-        document.getElementById("adminLogin").style.display = "none";
-        renderMembers();
-      } else {
-        alert("Wrong password!");
-      }
+  // Function to render members list
+  function renderMembers(members) {
+    membersList.innerHTML = '';
+    for (const id in members) {
+      const member = members[id];
+      const card = document.createElement('div');
+      card.className = 'memberCard';
+
+      card.innerHTML = `
+        <img src="${member.photoURL}" alt="${member.name}" />
+        <h3>${member.name}</h3>
+        <p><b>Role:</b> ${member.role}</p>
+        <p><b>Qualification:</b> ${member.qualification}</p>
+        <button class="deleteBtn" title="Delete Member">&times;</button>
+      `;
+
+      // Delete button only visible for admin
+      const delBtn = card.querySelector('.deleteBtn');
+      delBtn.style.display = isAdmin ? 'block' : 'none';
+      delBtn.addEventListener('click', () => {
+        if (confirm(`Delete member ${member.name}?`)) {
+          deleteMember(id);
+        }
+      });
+
+      membersList.appendChild(card);
     }
+  }
 
-    renderMembers();
-  </script>
+  // Listen for changes in members data
+  db.ref('members').on('value', (snapshot) => {
+    const members = snapshot.val() || {};
+    renderMembers(members);
+  });
+
+</script>
+
 </body>
 </html>
