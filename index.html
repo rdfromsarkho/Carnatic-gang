@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 <html lang="en">
-  
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -123,7 +122,7 @@
     <option value="Student">Student</option>
     <option value="Other">Other</option>
   </select>
-  <input type="file" id="photo" accept="image/*" required />
+  <input type="file" id="photo" accept="image/*" />
   <button type="submit">Add Member</button>
 </form>
 
@@ -185,15 +184,19 @@
     const qualification = document.getElementById('qualification').value;
     const photoFile = document.getElementById('photo').files[0];
 
-    if (!name || !role || !qualification || !photoFile) {
-      alert("Please fill all fields and select a photo.");
+    if (!name || !role || !qualification) {
+      alert("Please fill all fields.");
       return;
     }
 
+    let photoURL = "https://via.placeholder.com/100"; // default image if no photo uploaded
+
     try {
-      const storageRef = storage.ref('members/' + Date.now() + '_' + photoFile.name);
-      const snapshot = await storageRef.put(photoFile);
-      const photoURL = await snapshot.ref.getDownloadURL();
+      if (photoFile) {
+        const storageRef = storage.ref('members/' + Date.now() + '_' + photoFile.name);
+        const snapshot = await storageRef.put(photoFile);
+        photoURL = await snapshot.ref.getDownloadURL();
+      }
 
       const newMemberRef = db.ref('members').push();
       await newMemberRef.set({
@@ -204,7 +207,6 @@
       });
 
       alert("Member added successfully!");
-
       memberForm.reset();
     } catch (error) {
       alert("Error adding member: " + error.message);
