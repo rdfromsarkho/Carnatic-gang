@@ -22,14 +22,15 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
-    form {
+    .form-section, .admin-login {
       margin-top: 30px;
     }
     input {
-      padding: 10px;
+      padding: 8px;
       margin: 5px;
       border-radius: 5px;
       border: 1px solid #ccc;
+      width: 90%;
     }
     button {
       padding: 10px 20px;
@@ -38,6 +39,10 @@
       color: white;
       border-radius: 5px;
       cursor: pointer;
+      margin: 5px;
+    }
+    .admin-controls {
+      margin-top: 10px;
     }
   </style>
 </head>
@@ -45,52 +50,80 @@
   <h1>Carnatic Gang</h1>
   <p>हर बंदा है यूनिक, हर रोल है क्लासिक</p>
 
-  <div id="members">
-    <div class="member"><strong>Mansingh Chacha</strong> – Leader</div>
-    <div class="member"><strong>Chotu Chacha</strong> – Cameraman</div>
-    <div class="member"><strong>Krishna</strong> – Hacker</div>
-    <div class="member"><strong>Mohit</strong> – Chant</div>
-    <div class="member"><strong>Himanshu</strong> – GF Agent ❤️‍🔥</div>
-    <div class="member"><strong>Nitin</strong> – Helper</div>
+  <div id="members"></div>
+
+  <div class="form-section" id="publicForm">
+    <h2>Add Yourself</h2>
+    <input type="text" id="name" placeholder="Name" required /><br>
+    <input type="text" id="role" placeholder="Designation" required /><br>
+    <input type="text" id="qual" placeholder="Qualification" required /><br>
+    <button onclick="addMember()">Add Member</button>
   </div>
 
-  <form id="addMemberForm">
-    <h2>Add New Member</h2>
-    <input type="text" id="name" placeholder="Name" required />
-    <input type="text" id="role" placeholder="Designation" required />
-    <button type="submit">Add Member</button>
-  </form>
+  <div class="admin-login" id="adminLogin">
+    <h3>Admin Login</h3>
+    <input type="password" id="adminPass" placeholder="Enter admin password" />
+    <button onclick="login()">Login</button>
+  </div>
 
   <script>
-    const form = document.getElementById('addMemberForm');
-    const membersDiv = document.getElementById('members');
+    const ADMIN_PASSWORD = "carnatic123";
+    let isAdmin = false;
+    let members = JSON.parse(localStorage.getItem("members") || "[]");
 
-    function addMemberToDOM(name, role) {
-      const div = document.createElement('div');
-      div.className = 'member';
-      div.innerHTML = `<strong>${name}</strong> – ${role}`;
-      membersDiv.appendChild(div);
+    function saveData() {
+      localStorage.setItem("members", JSON.stringify(members));
     }
 
-    // Load saved members
-    window.onload = () => {
-      const saved = JSON.parse(localStorage.getItem('members') || "[]");
-      saved.forEach(m => addMemberToDOM(m.name, m.role));
-    };
+    function renderMembers() {
+      const membersDiv = document.getElementById("members");
+      membersDiv.innerHTML = "";
+      members.forEach((m, i) => {
+        let html = `<div class="member"><strong>${m.name}</strong><br>${m.role}<br><em>${m.qual}</em>`;
+        if (isAdmin) {
+          html += `<div class="admin-controls">
+                    <button onclick="deleteMember(${i})">🗑 Delete</button>
+                   </div>`;
+        }
+        html += `</div>`;
+        membersDiv.innerHTML += html;
+      });
+    }
 
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      const name = document.getElementById('name').value.trim();
-      const role = document.getElementById('role').value.trim();
-      if (name && role) {
-        addMemberToDOM(name, role);
-        // Save to localStorage
-        const saved = JSON.parse(localStorage.getItem('members') || "[]");
-        saved.push({ name, role });
-        localStorage.setItem('members', JSON.stringify(saved));
-        form.reset();
+    function addMember() {
+      const name = document.getElementById("name").value.trim();
+      const role = document.getElementById("role").value.trim();
+      const qual = document.getElementById("qual").value.trim();
+      if (!name || !role || !qual) return alert("Please fill all fields");
+
+      members.push({ name, role, qual });
+      saveData();
+      renderMembers();
+      document.getElementById("name").value = "";
+      document.getElementById("role").value = "";
+      document.getElementById("qual").value = "";
+    }
+
+    function deleteMember(index) {
+      if (confirm("Are you sure you want to delete this member?")) {
+        members.splice(index, 1);
+        saveData();
+        renderMembers();
       }
-    });
+    }
+
+    function login() {
+      const pass = document.getElementById("adminPass").value;
+      if (pass === ADMIN_PASSWORD) {
+        isAdmin = true;
+        document.getElementById("adminLogin").style.display = "none";
+        renderMembers();
+      } else {
+        alert("Wrong password!");
+      }
+    }
+
+    renderMembers();
   </script>
 </body>
 </html>
