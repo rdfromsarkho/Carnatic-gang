@@ -22,6 +22,13 @@
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+    .member img {
+      width: 100px;
+      height: 100px;
+      object-fit: cover;
+      border-radius: 50%;
+      margin-bottom: 10px;
+    }
     .form-section, .admin-login {
       margin-top: 30px;
     }
@@ -57,6 +64,7 @@
     <input type="text" id="name" placeholder="Name" required /><br>
     <input type="text" id="role" placeholder="Designation" required /><br>
     <input type="text" id="qual" placeholder="Qualification" required /><br>
+    <input type="file" id="photo" accept="image/*" /><br>
     <button onclick="addMember()">Add Member</button>
   </div>
 
@@ -79,7 +87,9 @@
       const membersDiv = document.getElementById("members");
       membersDiv.innerHTML = "";
       members.forEach((m, i) => {
-        let html = `<div class="member"><strong>${m.name}</strong><br>${m.role}<br><em>${m.qual}</em>`;
+        let html = `<div class="member">
+          <img src="${m.photo}" alt="Photo" />
+          <strong>${m.name}</strong><br>${m.role}<br><em>${m.qual}</em>`;
         if (isAdmin) {
           html += `<div class="admin-controls">
                     <button onclick="deleteMember(${i})">🗑 Delete</button>
@@ -94,14 +104,26 @@
       const name = document.getElementById("name").value.trim();
       const role = document.getElementById("role").value.trim();
       const qual = document.getElementById("qual").value.trim();
-      if (!name || !role || !qual) return alert("Please fill all fields");
+      const photoInput = document.getElementById("photo");
 
-      members.push({ name, role, qual });
-      saveData();
-      renderMembers();
-      document.getElementById("name").value = "";
-      document.getElementById("role").value = "";
-      document.getElementById("qual").value = "";
+      if (!name || !role || !qual || !photoInput.files[0]) {
+        alert("Please fill all fields and upload a photo");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const photoData = e.target.result;
+        const newMember = { name, role, qual, photo: photoData };
+        members.push(newMember);
+        saveData();
+        renderMembers();
+        document.getElementById("name").value = "";
+        document.getElementById("role").value = "";
+        document.getElementById("qual").value = "";
+        document.getElementById("photo").value = "";
+      };
+      reader.readAsDataURL(photoInput.files[0]);
     }
 
     function deleteMember(index) {
