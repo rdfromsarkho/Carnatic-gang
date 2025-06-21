@@ -3,20 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Carnatic Gang Members </title>
- <style>
-
-  .memberCard {
-  background: #c8e6c9;
-  padding: 10px;
-  border-radius: 8px;
-  width: 180px;
-  box-shadow: 0 0 5px #4caf50aa;
-  text-align: center;
-  position: relative;
-  display: inline-block;
-}
- 
+  <title>Carnatic Gang Members</title>
+  <style>
     body {
       font-family: Arial, sans-serif;
       background: #e8f5e9;
@@ -55,7 +43,7 @@
       background: #2e7d32;
     }
     #membersList {
-      max-width: 600px;
+      max-width: 1200px;
       margin: 0 auto;
       display: flex;
       flex-wrap: wrap;
@@ -79,10 +67,9 @@
       border: 2px solid #2e7d32;
       margin-bottom: 8px;
     }
-    .deleteBtn {
+    .deleteBtn, .editBtn {
       position: absolute;
       top: 6px;
-      right: 6px;
       background: #d32f2f;
       color: white;
       border: none;
@@ -92,6 +79,13 @@
       font-weight: bold;
       cursor: pointer;
       display: none;
+    }
+    .editBtn {
+      right: 36px;
+      background: #1976d2;
+    }
+    .deleteBtn {
+      right: 6px;
     }
     #adminLogin {
       max-width: 400px;
@@ -175,17 +169,17 @@
       isAdmin = true;
       loginMsg.textContent = "Admin logged in!";
       adminPasswordInput.value = '';
-      showDeleteButtons(true);
+      showAdminButtons(true);
     } else {
       loginMsg.textContent = "Wrong password!";
     }
   });
 
-  function showDeleteButtons(show) {
-    const buttons = document.querySelectorAll('.deleteBtn');
-    buttons.forEach(btn => {
-      btn.style.display = show ? 'block' : 'none';
-    });
+  function showAdminButtons(show) {
+    const deleteBtns = document.querySelectorAll('.deleteBtn');
+    const editBtns = document.querySelectorAll('.editBtn');
+    deleteBtns.forEach(btn => btn.style.display = show ? 'block' : 'none');
+    editBtns.forEach(btn => btn.style.display = show ? 'block' : 'none');
   }
 
   memberForm.addEventListener('submit', async (e) => {
@@ -201,7 +195,7 @@
       return;
     }
 
-    let photoURL = "https://via.placeholder.com/100"; // default image if no photo uploaded
+    let photoURL = "https://via.placeholder.com/100"; // default
 
     try {
       if (photoFile) {
@@ -226,15 +220,33 @@
   });
 
   async function deleteMember(memberId) {
-    if (!isAdmin) {
-      alert("Only admin can delete members.");
-      return;
-    }
+    if (!isAdmin) return alert("Only admin can delete members.");
     try {
       await db.ref('members/' + memberId).remove();
-      alert("Member deleted successfully!");
+      alert("Member deleted!");
     } catch (error) {
-      alert("Error deleting member: " + error.message);
+      alert("Error deleting: " + error.message);
+    }
+  }
+
+  async function editMember(memberId, oldData) {
+    if (!isAdmin) return alert("Only admin can edit members.");
+
+    const newName = prompt("Edit Name:", oldData.name);
+    const newRole = prompt("Edit Role:", oldData.role);
+    const newQual = prompt("Edit Qualification:", oldData.qualification);
+
+    if (newName && newRole && newQual) {
+      try {
+        await db.ref('members/' + memberId).update({
+          name: newName,
+          role: newRole,
+          qualification: newQual
+        });
+        alert("Member updated!");
+      } catch (error) {
+        alert("Update failed: " + error.message);
+      }
     }
   }
 
@@ -250,15 +262,20 @@
         <h3>${member.name}</h3>
         <p><b>Role:</b> ${member.role}</p>
         <p><b>Qualification:</b> ${member.qualification}</p>
-        <button class="deleteBtn" title="Delete Member">&times;</button>
+        <button class="editBtn" title="Edit">✎</button>
+        <button class="deleteBtn" title="Delete">&times;</button>
       `;
 
       const delBtn = card.querySelector('.deleteBtn');
       delBtn.style.display = isAdmin ? 'block' : 'none';
       delBtn.addEventListener('click', () => {
-        if (confirm(`Delete member ${member.name}?`)) {
-          deleteMember(id);
-        }
+        if (confirm(`Delete ${member.name}?`)) deleteMember(id);
+      });
+
+      const editBtn = card.querySelector('.editBtn');
+      editBtn.style.display = isAdmin ? 'block' : 'none';
+      editBtn.addEventListener('click', () => {
+        editMember(id, member);
       });
 
       membersList.appendChild(card);
@@ -270,8 +287,7 @@
     renderMembers(members);
   });
 </script>
-  <body>
-  <!-- Tera page ka content -->
-  <p>design by GATTU GANGSTER RASHULPUR WALE </p>
+
+<p style="text-align:center;margin-top:20px;">Design by <b>GATTU GANGSTER RASHULPUR WALE</b></p>
 </body>
 </html>
