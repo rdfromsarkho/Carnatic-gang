@@ -11,12 +11,10 @@
       margin: 0;
       padding: 20px;
     }
-
     h1 {
       color: #2e7d32;
       text-align: center;
     }
-
     form {
       max-width: 400px;
       margin: 0 auto 20px auto;
@@ -24,7 +22,6 @@
       padding: 15px;
       border-radius: 8px;
     }
-
     input, select {
       width: 100%;
       padding: 8px;
@@ -32,7 +29,6 @@
       border-radius: 4px;
       border: 1px solid #4caf50;
     }
-
     button {
       background: #388e3c;
       color: white;
@@ -43,57 +39,70 @@
       cursor: pointer;
       font-weight: bold;
     }
-
     button:hover {
       background: #2e7d32;
     }
 
     #membersList {
       width: 100%;
-      overflow-x: auto;
-      white-space: nowrap;
-      padding: 10px;
-      scroll-behavior: smooth;
+      margin: 20px auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 15px;
+      justify-items: center;
     }
 
     .memberCard {
-      display: inline-block;
-      vertical-align: top;
       background: #c8e6c9;
-      margin-right: 15px;
-      padding: 10px;
+      padding: 8px;
       border-radius: 8px;
-      width: 180px;
+      width: 140px;
       box-shadow: 0 0 5px #4caf50aa;
       text-align: center;
       position: relative;
     }
 
     .memberCard img {
-      width: 100px;
-      height: 100px;
+      width: 80px;
+      height: 80px;
       border-radius: 50%;
       object-fit: cover;
       border: 2px solid #2e7d32;
-      margin-bottom: 8px;
+      margin-bottom: 5px;
+    }
+
+    .memberCard h3 {
+      font-size: 15px;
+      margin: 5px 0 2px 0;
+      word-break: break-word;
+    }
+
+    .memberCard p {
+      font-size: 13px;
+      margin: 2px 0;
+      word-break: break-word;
     }
 
     .deleteBtn, .editBtn {
       position: absolute;
-      top: 6px;
+      top: 4px;
       background: #d32f2f;
       color: white;
       border: none;
       border-radius: 50%;
-      width: 24px;
-      height: 24px;
+      width: 20px;
+      height: 20px;
       font-weight: bold;
       cursor: pointer;
       display: none;
+      font-size: 12px;
+      line-height: 20px;
+      text-align: center;
+      padding: 0;
     }
 
     .editBtn {
-      right: 36px;
+      right: 30px;
       background: #1976d2;
     }
 
@@ -151,8 +160,6 @@
 
 <div id="membersList"></div>
 
-<p style="text-align:center;margin-top:20px;">Design by <b>GATTU GANGSTER RASHULPUR WALE</b></p>
-
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -175,12 +182,13 @@
 
   const memberForm = document.getElementById('memberForm');
   const membersList = document.getElementById('membersList');
+
   let isAdmin = false;
+  const adminPassword = 'carnatic123';
 
   const loginBtn = document.getElementById('loginBtn');
   const adminPasswordInput = document.getElementById('adminPassword');
   const loginMsg = document.getElementById('loginMsg');
-  const adminPassword = 'carnatic123';
 
   loginBtn.addEventListener('click', () => {
     if (adminPasswordInput.value === adminPassword) {
@@ -213,7 +221,7 @@
       return;
     }
 
-    let photoURL = "https://via.placeholder.com/100";
+    let photoURL = "https://via.placeholder.com/100"; // default image
 
     try {
       if (photoFile) {
@@ -223,7 +231,12 @@
       }
 
       const newMemberRef = db.ref('members').push();
-      await newMemberRef.set({ name, role, qualification, photoURL });
+      await newMemberRef.set({
+        name,
+        role,
+        qualification,
+        photoURL
+      });
 
       alert("Member added successfully!");
       memberForm.reset();
@@ -233,20 +246,28 @@
   });
 
   async function deleteMember(memberId) {
-    if (!isAdmin) return alert("Only admin can delete members.");
+    if (!isAdmin) {
+      alert("Only admin can delete members.");
+      return;
+    }
     try {
       await db.ref('members/' + memberId).remove();
       alert("Member deleted!");
     } catch (error) {
-      alert("Error deleting: " + error.message);
+      alert("Error deleting member: " + error.message);
     }
   }
 
   async function editMember(memberId, oldData) {
-    if (!isAdmin) return alert("Only admin can edit members.");
+    if (!isAdmin) {
+      alert("Only admin can edit members.");
+      return;
+    }
+
     const newName = prompt("Edit Name:", oldData.name);
     const newRole = prompt("Edit Role:", oldData.role);
     const newQual = prompt("Edit Qualification:", oldData.qualification);
+
     if (newName && newRole && newQual) {
       try {
         await db.ref('members/' + memberId).update({
@@ -267,6 +288,7 @@
       const member = members[id];
       const card = document.createElement('div');
       card.className = 'memberCard';
+
       card.innerHTML = `
         <img src="${member.photoURL}" alt="${member.name}" />
         <h3>${member.name}</h3>
@@ -279,7 +301,9 @@
       const delBtn = card.querySelector('.deleteBtn');
       delBtn.style.display = isAdmin ? 'block' : 'none';
       delBtn.addEventListener('click', () => {
-        if (confirm(`Delete ${member.name}?`)) deleteMember(id);
+        if (confirm(`Delete member ${member.name}?`)) {
+          deleteMember(id);
+        }
       });
 
       const editBtn = card.querySelector('.editBtn');
@@ -297,5 +321,7 @@
     renderMembers(members);
   });
 </script>
+
+<p style="text-align:center;margin-top:20px;">Design by <b>GATTU GANGSTER RASHULPUR WALE</b></p>
 </body>
 </html>
