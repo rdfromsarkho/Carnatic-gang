@@ -11,10 +11,12 @@
       margin: 0;
       padding: 20px;
     }
+
     h1 {
       color: #2e7d32;
       text-align: center;
     }
+
     form {
       max-width: 400px;
       margin: 0 auto 20px auto;
@@ -22,6 +24,7 @@
       padding: 15px;
       border-radius: 8px;
     }
+
     input, select {
       width: 100%;
       padding: 8px;
@@ -29,6 +32,7 @@
       border-radius: 4px;
       border: 1px solid #4caf50;
     }
+
     button {
       background: #388e3c;
       color: white;
@@ -39,29 +43,32 @@
       cursor: pointer;
       font-weight: bold;
     }
+
     button:hover {
       background: #2e7d32;
     }
+
     #membersList {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 20px;
-      padding: 20px;
+      width: 100%;
+      overflow-x: auto;
+      white-space: nowrap;
+      padding: 10px;
+      scroll-behavior: smooth;
     }
- #membersList {
-  display: flex;
-  overflow-x: auto;   /* horizontal scroll enable */
-  white-space: nowrap;
-  padding: 8px;
-  gap: 5px;
-}
-.memberCard {
-  flex: 0 0 auto;   /* important for     #membersList::-webkit-scrollbar {
-      height: 6px;
+
+    .memberCard {
+      display: inline-block;
+      vertical-align: top;
+      background: #c8e6c9;
+      margin-right: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      width: 180px;
+      box-shadow: 0 0 5px #4caf50aa;
+      text-align: center;
+      position: relative;
     }
-  
-    
+
     .memberCard img {
       width: 100px;
       height: 100px;
@@ -70,6 +77,7 @@
       border: 2px solid #2e7d32;
       margin-bottom: 8px;
     }
+
     .deleteBtn, .editBtn {
       position: absolute;
       top: 6px;
@@ -83,27 +91,33 @@
       cursor: pointer;
       display: none;
     }
+
     .editBtn {
       right: 36px;
       background: #1976d2;
     }
+
     .deleteBtn {
       right: 6px;
     }
+
     #adminLogin {
       max-width: 400px;
       margin: 10px auto 20px auto;
       text-align: center;
     }
+
     #adminLogin input {
       width: auto;
       padding: 6px;
       margin-right: 8px;
     }
+
     #adminLogin button {
       width: auto;
       padding: 7px 12px;
     }
+
     #loginMsg {
       color: #d32f2f;
       font-weight: bold;
@@ -137,6 +151,8 @@
 
 <div id="membersList"></div>
 
+<p style="text-align:center;margin-top:20px;">Design by <b>GATTU GANGSTER RASHULPUR WALE</b></p>
+
 <!-- Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
@@ -159,11 +175,11 @@
 
   const memberForm = document.getElementById('memberForm');
   const membersList = document.getElementById('membersList');
+  let isAdmin = false;
+
   const loginBtn = document.getElementById('loginBtn');
   const adminPasswordInput = document.getElementById('adminPassword');
   const loginMsg = document.getElementById('loginMsg');
-
-  let isAdmin = false;
   const adminPassword = 'carnatic123';
 
   loginBtn.addEventListener('click', () => {
@@ -186,6 +202,7 @@
 
   memberForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+
     const name = document.getElementById('name').value.trim();
     const role = document.getElementById('role').value.trim();
     const qualification = document.getElementById('qualification').value;
@@ -197,6 +214,7 @@
     }
 
     let photoURL = "https://via.placeholder.com/100";
+
     try {
       if (photoFile) {
         const storageRef = storage.ref('members/' + Date.now() + '_' + photoFile.name);
@@ -210,7 +228,7 @@
       alert("Member added successfully!");
       memberForm.reset();
     } catch (error) {
-      alert("Error: " + error.message);
+      alert("Error adding member: " + error.message);
     }
   });
 
@@ -229,7 +247,6 @@
     const newName = prompt("Edit Name:", oldData.name);
     const newRole = prompt("Edit Role:", oldData.role);
     const newQual = prompt("Edit Qualification:", oldData.qualification);
-
     if (newName && newRole && newQual) {
       try {
         await db.ref('members/' + memberId).update({
@@ -237,7 +254,7 @@
           role: newRole,
           qualification: newQual
         });
-        alert("Updated successfully!");
+        alert("Member updated!");
       } catch (error) {
         alert("Update failed: " + error.message);
       }
@@ -250,7 +267,6 @@
       const member = members[id];
       const card = document.createElement('div');
       card.className = 'memberCard';
-
       card.innerHTML = `
         <img src="${member.photoURL}" alt="${member.name}" />
         <h3>${member.name}</h3>
@@ -281,7 +297,5 @@
     renderMembers(members);
   });
 </script>
-
-<p style="text-align:center;margin-top:20px;">Design by <b>GATTU GANGSTER RASHULPUR WALE</b></p>
 </body>
 </html>
