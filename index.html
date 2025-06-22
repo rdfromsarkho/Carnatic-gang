@@ -43,12 +43,11 @@
       background: #2e7d32;
     }
     #membersList {
-      max-width: 1200px;
-      margin: 0 auto;
       display: flex;
       flex-wrap: wrap;
-      gap: 15px;
       justify-content: center;
+      gap: 20px;
+      padding: 20px;
     }
     .memberCard {
       background: #c8e6c9;
@@ -156,13 +155,12 @@
 
   const memberForm = document.getElementById('memberForm');
   const membersList = document.getElementById('membersList');
-
-  let isAdmin = false;
-  const adminPassword = 'carnatic123';
-
   const loginBtn = document.getElementById('loginBtn');
   const adminPasswordInput = document.getElementById('adminPassword');
   const loginMsg = document.getElementById('loginMsg');
+
+  let isAdmin = false;
+  const adminPassword = 'carnatic123';
 
   loginBtn.addEventListener('click', () => {
     if (adminPasswordInput.value === adminPassword) {
@@ -174,90 +172,112 @@
       loginMsg.textContent = "Wrong password!";
     }
   });
-function showAdminButtons(show) {
+
+  function showAdminButtons(show) {
     const deleteBtns = document.querySelectorAll('.deleteBtn');
     const editBtns = document.querySelectorAll('.editBtn');
     deleteBtns.forEach(btn => btn.style.display = show ? 'block' : 'none');
     editBtns.forEach(btn => btn.style.display = show ? 'block' : 'none');
   }
+
   memberForm.addEventListener('submit', async (e) => {
     e.preventDefault();
- const name = document.getElementById('name').value.trim();
+    const name = document.getElementById('name').value.trim();
     const role = document.getElementById('role').value.trim();
     const qualification = document.getElementById('qualification').value;
     const photoFile = document.getElementById('photo').files[0];
- if (!name || !role || !qualification) {
+
+    if (!name || !role || !qualification) {
       alert("Please fill all fields.");
       return;
-    }  let photoURL = "https://via.placeholder.com/100"; // default
- try {
+    }
+
+    let photoURL = "https://via.placeholder.com/100";
+    try {
       if (photoFile) {
         const storageRef = storage.ref('members/' + Date.now() + '_' + photoFile.name);
         const snapshot = await storageRef.put(photoFile);
         photoURL = await snapshot.ref.getDownloadURL();
-      }  const newMemberRef = db.ref('members').push();
-      await newMemberRef.set({   name,
-        role,
-        qualification,
-        photoURL
-      });
- alert("Member added successfully!");
+      }
+
+      const newMemberRef = db.ref('members').push();
+      await newMemberRef.set({ name, role, qualification, photoURL });
+
+      alert("Member added successfully!");
       memberForm.reset();
-    } catch (error) {   alert("Error adding member: " + error.message);
+    } catch (error) {
+      alert("Error: " + error.message);
     }
-  });  async function deleteMember(memberId) {
+  });
+
+  async function deleteMember(memberId) {
     if (!isAdmin) return alert("Only admin can delete members.");
-    try {   await db.ref('members/' + memberId).remove();
+    try {
+      await db.ref('members/' + memberId).remove();
       alert("Member deleted!");
     } catch (error) {
       alert("Error deleting: " + error.message);
     }
   }
+
   async function editMember(memberId, oldData) {
     if (!isAdmin) return alert("Only admin can edit members.");
-  const newName = prompt("Edit Name:", oldData.name);
+    const newName = prompt("Edit Name:", oldData.name);
     const newRole = prompt("Edit Role:", oldData.role);
     const newQual = prompt("Edit Qualification:", oldData.qualification);
-  if (newName && newRole && newQual) {
+
+    if (newName && newRole && newQual) {
       try {
         await db.ref('members/' + memberId).update({
           name: newName,
           role: newRole,
           qualification: newQual
         });
-        alert("Member updated!");
+        alert("Updated successfully!");
       } catch (error) {
         alert("Update failed: " + error.message);
       }
     }
-  } function renderMembers(members) {
+  }
+
+  function renderMembers(members) {
     membersList.innerHTML = '';
     for (const id in members) {
       const member = members[id];
       const card = document.createElement('div');
       card.className = 'memberCard';
-  card.innerHTML = `
+
+      card.innerHTML = `
         <img src="${member.photoURL}" alt="${member.name}" />
         <h3>${member.name}</h3>
         <p><b>Role:</b> ${member.role}</p>
         <p><b>Qualification:</b> ${member.qualification}</p>
         <button class="editBtn" title="Edit">✎</button>
         <button class="deleteBtn" title="Delete">&times;</button>
-      `;  const delBtn = card.querySelector('.deleteBtn');
+      `;
+
+      const delBtn = card.querySelector('.deleteBtn');
       delBtn.style.display = isAdmin ? 'block' : 'none';
       delBtn.addEventListener('click', () => {
         if (confirm(`Delete ${member.name}?`)) deleteMember(id);
-      }); const editBtn = card.querySelector('.editBtn');
+      });
+
+      const editBtn = card.querySelector('.editBtn');
       editBtn.style.display = isAdmin ? 'block' : 'none';
       editBtn.addEventListener('click', () => {
         editMember(id, member);
-      });  membersList.appendChild(card);
+      });
+
+      membersList.appendChild(card);
     }
-  } db.ref('members').on('value', (snapshot) => {
+  }
+
+  db.ref('members').on('value', (snapshot) => {
     const members = snapshot.val() || {};
     renderMembers(members);
   });
 </script>
+
 <p style="text-align:center;margin-top:20px;">Design by <b>GATTU GANGSTER RASHULPUR WALE</b></p>
 </body>
 </html>
